@@ -50,6 +50,33 @@ func adminLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	}
 }
 
+func adminRefreshHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.RefreshReq
+		if err := httpx.Parse(r, &req); err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		resp, err := logic.AdminRefresh(r.Context(), svcCtx, &req)
+		if err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		writeOk(r, w, resp)
+	}
+}
+
+func adminLogoutHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := logic.AdminLogout(r.Context(), svcCtx)
+		if err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		writeOk(r, w, resp)
+	}
+}
+
 func createAdminHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.CreateAdminReq
@@ -253,6 +280,33 @@ func merchantLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 		resp, err := logic.MerchantLogin(r.Context(), svcCtx, &req)
+		if err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		writeOk(r, w, resp)
+	}
+}
+
+func merchantRefreshHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.RefreshReq
+		if err := httpx.Parse(r, &req); err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		resp, err := logic.MerchantRefresh(r.Context(), svcCtx, &req)
+		if err != nil {
+			writeErr(r, w, err)
+			return
+		}
+		writeOk(r, w, resp)
+	}
+}
+
+func merchantLogoutHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := logic.MerchantLogout(r.Context(), svcCtx)
 		if err != nil {
 			writeErr(r, w, err)
 			return

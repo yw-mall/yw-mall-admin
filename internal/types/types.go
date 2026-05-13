@@ -7,12 +7,30 @@ type LoginReq struct {
 }
 
 type LoginResp struct {
-	Token       string   `json:"token"`
-	Id          int64    `json:"id"`
-	Username    string   `json:"username"`
-	Role        string   `json:"role"`
-	ShopId      int64    `json:"shopId,omitempty"`
-	Permissions []string `json:"permissions,omitempty"`
+	Token        string   `json:"token"`
+	RefreshToken string   `json:"refreshToken"`
+	ExpiresIn    int32    `json:"expiresIn"`
+	CsrfToken    string   `json:"csrfToken"`
+	Id           int64    `json:"id"`
+	Username     string   `json:"username"`
+	Role         string   `json:"role"`
+	ShopId       int64    `json:"shopId,omitempty"`
+	Permissions  []string `json:"permissions,omitempty"`
+}
+
+type RefreshReq struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RefreshResp struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+	ExpiresIn    int32  `json:"expiresIn"`
+	CsrfToken    string `json:"csrfToken"`
+}
+
+type LogoutResp struct {
+	Ok bool `json:"ok"`
 }
 
 type CreateAdminReq struct {

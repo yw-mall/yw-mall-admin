@@ -4,7 +4,6 @@ import (
 	"mall-activity-rpc/activityclient"
 	"mall-admin-api/internal/config"
 	"mall-admin-api/internal/middleware"
-	"mall-common/configcenter"
 	"mall-logistics-rpc/logisticsclient"
 	"mall-order-rpc/orderclient"
 	"mall-payment-rpc/paymentclient"
@@ -32,22 +31,20 @@ type ServiceContext struct {
 	ActivityRpc  activityclient.Activity
 	LogisticsRpc logisticsclient.Logistics
 
-	JwtSecret *configcenter.HotConfig[string]
-
 	AdminAuth    rest.Middleware
 	MerchantAuth rest.Middleware
 	OpLog        rest.Middleware
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
-	secret := configcenter.NewHotConfig(c.Auth.AccessSecret)
-	adminMw := middleware.NewRoleMiddleware(secret, "admin")
-	merchantMw := middleware.NewRoleMiddleware(secret, "merchant")
+	userRpc := userclient.NewUser(zrpc.MustNewClient(c.UserRpc))
+	adminMw := middleware.NewSessionAuthMiddleware(userRpc, "admin")
+	merchantMw := middleware.NewSessionAuthMiddleware(userRpc, "merchant")
 	opLog := middleware.NewOpLogMiddleware()
 
 	return &ServiceContext{
 		Config:       c,
-		UserRpc:      userclient.NewUser(zrpc.MustNewClient(c.UserRpc)),
+		UserRpc:      userRpc,
 		ShopRpc:      shopservice.NewShopService(zrpc.MustNewClient(c.ShopRpc)),
 		ProductRpc:   productclient.NewProduct(zrpc.MustNewClient(c.ProductRpc)),
 		OrderRpc:     orderclient.NewOrder(zrpc.MustNewClient(c.OrderRpc)),
@@ -57,7 +54,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		PaymentRpc:   paymentclient.NewPayment(zrpc.MustNewClient(c.PaymentRpc)),
 		ActivityRpc:  activityclient.NewActivity(zrpc.MustNewClient(c.ActivityRpc)),
 		LogisticsRpc: logisticsclient.NewLogistics(zrpc.MustNewClient(c.LogisticsRpc)),
-		JwtSecret:    secret,
 		AdminAuth:    adminMw.Handle,
 		MerchantAuth: merchantMw.Handle,
 		OpLog:        opLog.Handle,

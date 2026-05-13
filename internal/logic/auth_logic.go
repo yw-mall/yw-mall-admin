@@ -13,7 +13,7 @@ import (
 	"mall-user-rpc/userclient"
 )
 
-// AdminLogin authenticates an admin and issues a JWT.
+// AdminLogin authenticates an admin and mints a Redis-backed opaque session.
 func AdminLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.LoginReq) (*types.LoginResp, error) {
 	resp, err := svcCtx.UserRpc.AdminLogin(ctx, &userclient.AdminLoginReq{
 		Username: req.Username,
@@ -23,20 +23,30 @@ func AdminLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.Logi
 		return nil, err
 	}
 	perms := splitPerms(resp.Permissions)
-	tok, err := middleware.IssueToken(resp.Id, "admin", 0, perms, svcCtx.JwtSecret.Get(), svcCtx.Config.Auth.AccessExpire)
+	sess, err := svcCtx.UserRpc.CreateSession(ctx, &userclient.CreateSessionReq{
+		Uid:      resp.Id,
+		Username: resp.Username,
+		Role:     "admin",
+		ShopId:   0,
+		Perms:    perms,
+	})
 	if err != nil {
 		return nil, err
 	}
 	return &types.LoginResp{
-		Token:       tok,
-		Id:          resp.Id,
-		Username:    resp.Username,
-		Role:        "admin",
-		Permissions: perms,
+		Token:        sess.AccessToken,
+		RefreshToken: sess.RefreshToken,
+		ExpiresIn:    sess.ExpiresIn,
+		CsrfToken:    sess.CsrfToken,
+		Id:           resp.Id,
+		Username:     resp.Username,
+		Role:         "admin",
+		Permissions:  perms,
 	}, nil
 }
 
-// MerchantLogin reuses the regular user login then attaches shop_id from shop service.
+// MerchantLogin reuses the regular user login then attaches shop_id from the
+// shop service before minting an opaque session bound to role=merchant.
 func MerchantLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.LoginReq) (*types.LoginResp, error) {
 	loginResp, err := svcCtx.UserRpc.Login(ctx, &userclient.LoginReq{
 		Username: req.Username,
@@ -49,17 +59,76 @@ func MerchantLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.L
 	if err != nil {
 		return nil, errors.New("merchant has no active shop; apply for one first")
 	}
-	tok, err := middleware.IssueToken(loginResp.Id, "merchant", shop.Id, nil, svcCtx.JwtSecret.Get(), svcCtx.Config.Auth.AccessExpire)
+	sess, err := svcCtx.UserRpc.CreateSession(ctx, &userclient.CreateSessionReq{
+		Uid:      loginResp.Id,
+		Username: req.Username,
+		Role:     "merchant",
+		ShopId:   shop.Id,
+	})
 	if err != nil {
 		return nil, err
 	}
 	return &types.LoginResp{
-		Token:    tok,
-		Id:       loginResp.Id,
-		Username: req.Username,
-		Role:     "merchant",
-		ShopId:   shop.Id,
+		Token:        sess.AccessToken,
+		RefreshToken: sess.RefreshToken,
+		ExpiresIn:    sess.ExpiresIn,
+		CsrfToken:    sess.CsrfToken,
+		Id:           loginResp.Id,
+		Username:     req.Username,
+		Role:         "merchant",
+		ShopId:       shop.Id,
 	}, nil
+}
+
+// AdminRefresh / MerchantRefresh rotate the access/refresh pair for the
+// matching role. The middleware can't run here — the access token is
+// already expired — so we trust the refresh token and verify the role on
+// the session returned by mall-user-rpc.
+func AdminRefresh(ctx context.Context, svcCtx *svc.ServiceContext, req *types.RefreshReq) (*types.RefreshResp, error) {
+	return refreshSession(ctx, svcCtx, req, "admin")
+}
+
+func MerchantRefresh(ctx context.Context, svcCtx *svc.ServiceContext, req *types.RefreshReq) (*types.RefreshResp, error) {
+	return refreshSession(ctx, svcCtx, req, "merchant")
+}
+
+func refreshSession(ctx context.Context, svcCtx *svc.ServiceContext, req *types.RefreshReq, requiredRole string) (*types.RefreshResp, error) {
+	if req.RefreshToken == "" {
+		return nil, errors.New("missing refresh token")
+	}
+	sess, err := svcCtx.UserRpc.RefreshSession(ctx, &userclient.RefreshSessionReq{
+		RefreshToken: req.RefreshToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if sess.Role != requiredRole {
+		return nil, errors.New("role mismatch")
+	}
+	return &types.RefreshResp{
+		Token:        sess.AccessToken,
+		RefreshToken: sess.RefreshToken,
+		ExpiresIn:    sess.ExpiresIn,
+		CsrfToken:    sess.CsrfToken,
+	}, nil
+}
+
+// AdminLogout / MerchantLogout revoke the bearer token of the current request.
+// Idempotent on the server side, so a double-click on logout is fine.
+func AdminLogout(ctx context.Context, svcCtx *svc.ServiceContext) (*types.LogoutResp, error) {
+	return destroySessionFromCtx(ctx, svcCtx)
+}
+
+func MerchantLogout(ctx context.Context, svcCtx *svc.ServiceContext) (*types.LogoutResp, error) {
+	return destroySessionFromCtx(ctx, svcCtx)
+}
+
+func destroySessionFromCtx(ctx context.Context, svcCtx *svc.ServiceContext) (*types.LogoutResp, error) {
+	tok := middleware.AccessTokenFromContext(ctx)
+	if tok != "" {
+		_, _ = svcCtx.UserRpc.DestroySession(ctx, &userclient.DestroySessionReq{AccessToken: tok})
+	}
+	return &types.LogoutResp{Ok: true}, nil
 }
 
 func CreateAdmin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.CreateAdminReq) (*types.CreateAdminResp, error) {

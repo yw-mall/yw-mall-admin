@@ -15,6 +15,7 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{Method: http.MethodPost, Path: "/login", Handler: adminLoginHandler(svcCtx)},
+			{Method: http.MethodPost, Path: "/refresh", Handler: adminRefreshHandler(svcCtx)},
 		},
 		rest.WithPrefix("/admin/v1"),
 	)
@@ -24,6 +25,8 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		rest.WithMiddlewares(
 			[]rest.Middleware{svcCtx.AdminAuth, svcCtx.OpLog},
 			[]rest.Route{
+				{Method: http.MethodPost, Path: "/logout", Handler: adminLogoutHandler(svcCtx)},
+
 				{Method: http.MethodPost, Path: "/accounts", Handler: createAdminHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/accounts", Handler: listAdminsHandler(svcCtx)},
 
@@ -97,6 +100,7 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{Method: http.MethodPost, Path: "/login", Handler: merchantLoginHandler(svcCtx)},
+			{Method: http.MethodPost, Path: "/refresh", Handler: merchantRefreshHandler(svcCtx)},
 			{Method: http.MethodPost, Path: "/apply", Handler: applyShopHandler(svcCtx)},
 			{Method: http.MethodGet, Path: "/apply/:id", Handler: getMyApplicationHandler(svcCtx)},
 		},
@@ -108,6 +112,8 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		rest.WithMiddlewares(
 			[]rest.Middleware{svcCtx.MerchantAuth, svcCtx.OpLog},
 			[]rest.Route{
+				{Method: http.MethodPost, Path: "/logout", Handler: merchantLogoutHandler(svcCtx)},
+
 				{Method: http.MethodGet, Path: "/shop", Handler: getMyShopHandler(svcCtx)},
 				{Method: http.MethodPut, Path: "/shop", Handler: updateMyShopHandler(svcCtx)},
 
