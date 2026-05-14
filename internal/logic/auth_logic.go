@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -168,9 +169,30 @@ func ListAdmins(ctx context.Context, svcCtx *svc.ServiceContext, req *types.List
 	return &types.ListAdminsResp{Total: resp.Total, Admins: out}, nil
 }
 
+// splitPerms parses the admin's permissions column. The DB schema stores it
+// as a JSON string array ('["*"]' or '["product.read","order.write"]'). Older
+// rows or CLI seeding tools may write plain CSV ("a,b,c"), so we accept both:
+//
+//   - leading '[' → JSON array decode
+//   - otherwise   → comma-split fallback
 func splitPerms(s string) []string {
+	s = strings.TrimSpace(s)
 	if s == "" {
 		return nil
+	}
+	if strings.HasPrefix(s, "[") {
+		var out []string
+		if err := json.Unmarshal([]byte(s), &out); err == nil {
+			cleaned := make([]string, 0, len(out))
+			for _, p := range out {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					cleaned = append(cleaned, p)
+				}
+			}
+			return cleaned
+		}
+		// fall through to CSV path on JSON parse error
 	}
 	parts := strings.Split(s, ",")
 	out := make([]string, 0, len(parts))
