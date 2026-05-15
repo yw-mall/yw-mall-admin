@@ -41,7 +41,10 @@ func adminLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			writeErr(r, w, err)
 			return
 		}
-		resp, err := logic.AdminLogin(r.Context(), svcCtx, &req)
+		// S4.2: stash client IP so the auth pipeline can do whitelist + lock
+		// checks without having to thread *http.Request all the way down.
+		ctx := logic.WithIP(r.Context(), logic.ClientIP(r))
+		resp, err := logic.AdminLogin(ctx, svcCtx, &req)
 		if err != nil {
 			writeErr(r, w, err)
 			return

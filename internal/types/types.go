@@ -16,6 +16,13 @@ type LoginResp struct {
 	Role         string   `json:"role"`
 	ShopId       int64    `json:"shopId,omitempty"`
 	Permissions  []string `json:"permissions,omitempty"`
+	// S4.3 password expiry: when true the FE forces a redirect to change-password.
+	PasswordExpired bool `json:"passwordExpired,omitempty"`
+	// S4.1 MFA: when true the FE shows the 6-digit input + uses the
+	// challengeToken with /admin/v1/login/mfa instead of treating Token as a
+	// session. In this mode Token/RefreshToken are empty.
+	MfaRequired    bool   `json:"mfaRequired,omitempty"`
+	ChallengeToken string `json:"challengeToken,omitempty"`
 }
 
 type RefreshReq struct {
@@ -1049,4 +1056,127 @@ type ReconcileReportDTO struct {
 	Passed       int32                    `json:"passed"`
 	Failed       int32                    `json:"failed"`
 	Results      []ShopReconcileResultDTO `json:"results"`
+}
+
+// ===== Sprint 4 =====
+
+// S4.1 MFA login flow
+type MfaLoginReq struct {
+	ChallengeToken string `json:"challengeToken"`
+	Code           string `json:"code"`
+}
+
+type MfaSmsSendReq struct {
+	ChallengeToken string `json:"challengeToken"`
+}
+
+type MfaSmsSendResp struct {
+	Ok bool `json:"ok"`
+}
+
+// S4.1 admin MFA self-management
+type MfaStatusResp struct {
+	Enabled    bool  `json:"enabled"`
+	LastUsedAt int64 `json:"lastUsedAt"`
+}
+
+type MfaEnableResp struct {
+	TotpSecret  string   `json:"totpSecret"`
+	QrUrl       string   `json:"qrUrl"`
+	BackupCodes []string `json:"backupCodes"`
+}
+
+type MfaConfirmReq struct {
+	Code string `json:"code"`
+}
+
+type MfaDisableReq struct {
+	Code string `json:"code"`
+}
+
+// S4.2 IP whitelist
+type IpWhitelistEntry struct {
+	Id         int64  `json:"id"`
+	AdminId    int64  `json:"adminId"`
+	Cidr       string `json:"cidr"`
+	Note       string `json:"note"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type ListIpWhitelistResp struct {
+	Items []IpWhitelistEntry `json:"items"`
+}
+
+type AddIpWhitelistReq struct {
+	Cidr string `json:"cidr"`
+	Note string `json:"note,optional"`
+}
+
+type AddIpWhitelistResp struct {
+	Id int64 `json:"id"`
+}
+
+// S4.3 change password (admin)
+type ChangePasswordReq struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
+// S4.4 KYC review (admin)
+type KycPendingItemDTO struct {
+	UserId         int64  `json:"userId"`
+	Username       string `json:"username"`
+	RealName       string `json:"realName"`
+	IdCardNo       string `json:"idCardNo"`
+	IdCardFrontUrl string `json:"idCardFrontUrl"`
+	IdCardBackUrl  string `json:"idCardBackUrl"`
+	FaceVideoUrl   string `json:"faceVideoUrl"`
+	SubmitTime     int64  `json:"submitTime"`
+	Status         int32  `json:"status"`
+}
+
+type ListPendingKycReq struct {
+	Page     int32 `form:"page,default=1"`
+	PageSize int32 `form:"pageSize,default=20"`
+}
+
+type ListPendingKycResp struct {
+	Items []KycPendingItemDTO `json:"items"`
+	Total int64               `json:"total"`
+}
+
+type AuditKycReq struct {
+	Pass   bool   `json:"pass"`
+	Reason string `json:"reason,optional"`
+}
+
+// S4.8 OpLog query UI
+type OpLogQueryReq struct {
+	ActorId   int64  `form:"actorId,optional"`
+	ActorRole string `form:"actorRole,optional"`
+	Method    string `form:"method,optional"`
+	Path      string `form:"path,optional"`
+	StatusMin int32  `form:"statusMin,optional"`
+	StatusMax int32  `form:"statusMax,optional"`
+	Since     int64  `form:"since,optional"`
+	Until     int64  `form:"until,optional"`
+	Page      int32  `form:"page,default=1"`
+	PageSize  int32  `form:"pageSize,default=20"`
+}
+
+type OpLogEntryDTO struct {
+	Id          int64  `json:"id"`
+	ActorId     int64  `json:"actorId"`
+	ActorRole   string `json:"actorRole"`
+	Method      string `json:"method"`
+	Path        string `json:"path"`
+	RequestBody string `json:"requestBody"`
+	StatusCode  int32  `json:"statusCode"`
+	Ip          string `json:"ip"`
+	CreateTime  int64  `json:"createTime"`
+}
+
+type OpLogQueryResp struct {
+	Total int64           `json:"total"`
+	Items []OpLogEntryDTO `json:"items"`
 }

@@ -21,4 +21,14 @@ type Config struct {
 	PaymentRpc   zrpc.RpcClientConf
 	ActivityRpc  zrpc.RpcClientConf
 	LogisticsRpc zrpc.RpcClientConf
+
+	// S4 security: Redis for failed-login lock + MFA challenge tokens.
+	Redis struct {
+		Host string
+		Pass string
+		DB   int
+	}
+
+	// S4.8: DSN for the admin_op_log table (lives in mall_user database).
+	OpLogDataSource string
 }

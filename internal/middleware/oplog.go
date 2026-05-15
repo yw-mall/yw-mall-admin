@@ -2,20 +2,29 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-// OpLogMiddleware records admin/merchant write operations via logx.
-// Using structured logs lets ops aggregate via existing pipelines without
-// taking a cross-database write dependency in the gateway.
-type OpLogMiddleware struct{}
+// OpLogMiddleware records admin/merchant write operations:
+//   1. always: structured logx (back-compat)
+//   2. when DB is non-nil: fire-and-forget INSERT INTO admin_op_log
+//
+// Inserts run on a fresh background context so the request handler can return
+// before the DB roundtrip finishes — the audit row must not block the user.
+type OpLogMiddleware struct {
+	db sqlx.SqlConn
+}
 
-func NewOpLogMiddleware() *OpLogMiddleware { return &OpLogMiddleware{} }
+// NewOpLogMiddleware accepts an optional sqlx.SqlConn. Pass nil to skip DB
+// writes (legacy log-only behaviour).
+func NewOpLogMiddleware(db sqlx.SqlConn) *OpLogMiddleware { return &OpLogMiddleware{db: db} }
 
 type statusRecorder struct {
 	http.ResponseWriter
@@ -59,5 +68,25 @@ func (m *OpLogMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		logx.WithContext(r.Context()).Infof(
 			"[oplog] actor=%d role=%s %s %s status=%d ip=%s elapsed=%s body=%s",
 			actorId, actorRole, method, r.URL.Path, rec.status, ip, time.Since(start), string(snippet))
+
+		// S4.8 fire-and-forget DB write. Skip when no db is configured.
+		if m.db != nil {
+			db := m.db
+			path := r.URL.Path
+			body := string(snippet)
+			status := int32(rec.status)
+			now := time.Now().Unix()
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
+				if _, err := db.ExecCtx(ctx, `
+					INSERT INTO admin_op_log
+					  (actor_id, actor_role, method, path, request_body, status_code, ip, create_time)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+					actorId, actorRole, method, path, body, status, ip, now); err != nil {
+					logx.Errorf("[oplog] insert failed: %v", err)
+				}
+			}()
+		}
 	}
 }

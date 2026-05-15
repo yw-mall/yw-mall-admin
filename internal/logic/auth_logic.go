@@ -14,22 +14,103 @@ import (
 	"mall-user-rpc/userclient"
 )
 
+// requestIPKey lets the handler stash the client IP into ctx so the auth logic
+// can pick it up without taking *http.Request as a parameter.
+type requestIPKey struct{}
+
+// WithIP wraps ctx with the supplied client IP.
+func WithIP(ctx context.Context, ip string) context.Context {
+	return context.WithValue(ctx, requestIPKey{}, ip)
+}
+
+// IPFromCtx returns the IP previously stashed via WithIP, or "" if absent.
+func IPFromCtx(ctx context.Context) string {
+	if v, ok := ctx.Value(requestIPKey{}).(string); ok {
+		return v
+	}
+	return ""
+}
+
 // AdminLogin authenticates an admin and mints a Redis-backed opaque session.
+//
+// Sprint 4 layered checks (in order):
+//   1. failed-login lockout (Redis counters; 30-min window)
+//   2. password verify via mall-user-rpc
+//   3. IP whitelist (empty = no restriction; mismatch = 401)
+//   4. password expiry → password_expired:true (FE forces change-password)
+//   5. MFA enabled → mfa_required:true + challengeToken (FE goes to /login/mfa)
+//   6. otherwise → CreateSession + return full LoginResp
 func AdminLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.LoginReq) (*types.LoginResp, error) {
+	ip := IPFromCtx(ctx)
+	username := strings.TrimSpace(req.Username)
+
+	// 1. lockout
+	if err := CheckLoginLock(ctx, svcCtx, "admin", username, ip); err != nil {
+		return nil, err
+	}
+
+	// 2. password
 	resp, err := svcCtx.UserRpc.AdminLogin(ctx, &userclient.AdminLoginReq{
 		Username: req.Username,
 		Password: req.Password,
 	})
 	if err != nil {
+		MarkLoginFail(ctx, svcCtx, "admin", username, ip)
 		return nil, err
 	}
 	perms := splitPerms(resp.Permissions)
+
+	// 3. IP whitelist
+	if err := EnforceIpWhitelist(ctx, svcCtx, resp.Id, ip); err != nil {
+		// Don't INCR fail counter here — the password was correct, and we don't
+		// want a wrong network → permanent lockout.
+		return nil, err
+	}
+
+	// success → clear lockout counters
+	ClearLoginFail(ctx, svcCtx, "admin", username, ip)
+
+	// 4. password expiry: gateway returns expired flag without minting a session
+	if resp.PasswordExpired {
+		return &types.LoginResp{
+			Id:              resp.Id,
+			Username:        resp.Username,
+			Role:            "admin",
+			Permissions:     perms,
+			PasswordExpired: true,
+		}, nil
+	}
+
+	// 5. MFA required: stash perms+identity, return challenge token
+	if resp.MfaRequired {
+		tok, err := stashChallenge(ctx, svcCtx, mfaChallengePayload{
+			AdminId:  resp.Id,
+			Username: resp.Username,
+			Role:     "admin",
+			Perms:    perms,
+			Ip:       ip,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &types.LoginResp{
+			Id:             resp.Id,
+			Username:       resp.Username,
+			Role:           "admin",
+			Permissions:    perms,
+			MfaRequired:    true,
+			ChallengeToken: tok,
+		}, nil
+	}
+
+	// 6. happy path
 	sess, err := svcCtx.UserRpc.CreateSession(ctx, &userclient.CreateSessionReq{
 		Uid:      resp.Id,
 		Username: resp.Username,
 		Role:     "admin",
 		ShopId:   0,
 		Perms:    perms,
+		Ip:       ip,
 	})
 	if err != nil {
 		return nil, err

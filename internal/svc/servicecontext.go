@@ -14,6 +14,8 @@ import (
 	"mall-shop-rpc/shopservice"
 	"mall-user-rpc/userclient"
 
+	"github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
@@ -34,13 +36,31 @@ type ServiceContext struct {
 	AdminAuth    rest.Middleware
 	MerchantAuth rest.Middleware
 	OpLog        rest.Middleware
+
+	// S4 security: Redis for failed-login lock + MFA challenge tokens.
+	Redis *redis.Client
+
+	// S4.8: direct DB connection to mall_user for the admin_op_log writer +
+	// op-log query endpoint. We bypass mall-user-rpc here because the table is
+	// owned by the gateway, not by the user-rpc data model.
+	OpLogDB sqlx.SqlConn
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	userRpc := userclient.NewUser(zrpc.MustNewClient(c.UserRpc))
+	rdb := newRedisClient(c)
+
+	// op-log DB: optional. When the DSN is empty we just write structured logs
+	// (legacy behaviour). When set, the OpLog middleware fires-and-forgets an
+	// INSERT into admin_op_log too.
+	var opLogDB sqlx.SqlConn
+	if c.OpLogDataSource != "" {
+		opLogDB = sqlx.NewMysql(c.OpLogDataSource)
+	}
+
 	adminMw := middleware.NewSessionAuthMiddleware(userRpc, "admin")
 	merchantMw := middleware.NewSessionAuthMiddleware(userRpc, "merchant")
-	opLog := middleware.NewOpLogMiddleware()
+	opLog := middleware.NewOpLogMiddleware(opLogDB)
 
 	return &ServiceContext{
 		Config:       c,
@@ -57,5 +77,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AdminAuth:    adminMw.Handle,
 		MerchantAuth: merchantMw.Handle,
 		OpLog:        opLog.Handle,
+		Redis:        rdb,
+		OpLogDB:      opLogDB,
 	}
+}
+
+func newRedisClient(c config.Config) *redis.Client {
+	host := c.Redis.Host
+	if host == "" {
+		host = "127.0.0.1:6379"
+	}
+	return redis.NewClient(&redis.Options{
+		Addr:     host,
+		Password: c.Redis.Pass,
+		DB:       c.Redis.DB,
+	})
 }

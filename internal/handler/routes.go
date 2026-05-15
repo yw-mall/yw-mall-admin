@@ -16,6 +16,10 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{Method: http.MethodPost, Path: "/login", Handler: adminLoginHandler(svcCtx)},
 			{Method: http.MethodPost, Path: "/refresh", Handler: adminRefreshHandler(svcCtx)},
+			// S4.1 MFA second-stage. These are intentionally public — the
+			// challengeToken in the body is the only authn token.
+			{Method: http.MethodPost, Path: "/login/mfa", Handler: mfaLoginHandler(svcCtx)},
+			{Method: http.MethodPost, Path: "/login/mfa/sms-send", Handler: mfaSmsSendHandler(svcCtx)},
 		},
 		rest.WithPrefix("/admin/v1"),
 	)
@@ -91,6 +95,27 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 				{Method: http.MethodGet, Path: "/ledger", Handler: listLedgerHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/ledger/summary", Handler: getLedgerSummaryHandler(svcCtx)},
 				{Method: http.MethodPost, Path: "/ledger/reconcile", Handler: runReconcileHandler(svcCtx)},
+
+				// ----- Sprint 4.1 MFA self-management -----
+				{Method: http.MethodGet, Path: "/profile/mfa", Handler: mfaStatusHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/profile/mfa/enable", Handler: mfaEnableHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/profile/mfa/confirm", Handler: mfaConfirmHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/profile/mfa/disable", Handler: mfaDisableHandler(svcCtx)},
+
+				// ----- Sprint 4.3 change password -----
+				{Method: http.MethodPost, Path: "/profile/password", Handler: changePasswordHandler(svcCtx)},
+
+				// ----- Sprint 4.2 IP whitelist -----
+				{Method: http.MethodGet, Path: "/security/ip-whitelist", Handler: listIpWhitelistHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/security/ip-whitelist", Handler: addIpWhitelistHandler(svcCtx)},
+				{Method: http.MethodDelete, Path: "/security/ip-whitelist/:id", Handler: deleteIpWhitelistHandler(svcCtx)},
+
+				// ----- Sprint 4.4 KYC review -----
+				{Method: http.MethodGet, Path: "/users/kyc/pending", Handler: listPendingKycHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/users/kyc/:userId/audit", Handler: auditKycHandler(svcCtx)},
+
+				// ----- Sprint 4.8 OpLog query -----
+				{Method: http.MethodGet, Path: "/op-log", Handler: opLogQueryHandler(svcCtx)},
 			}...,
 		),
 		rest.WithPrefix("/admin/v1"),
