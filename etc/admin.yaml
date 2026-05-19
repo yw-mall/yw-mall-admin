@@ -71,3 +71,12 @@ LogisticsRpc:
 #
 # Postgres (通过 PgBouncer):
 #   DSN: "postgres://app_rw:apprw123@127.0.0.1:5432/mall?sslmode=disable"
+
+# S4 安全：失败锁定 + MFA challenge token 握手 + IP 白名单等。
+Redis:
+  Host: 127.0.0.1:6379
+  Pass: ""
+  DB: 0
+
+# S4.8 OpLog 查询页直查 admin_op_log（位于 mall_user）。
+OpLogDataSource: proxysql:proxysql123@tcp(127.0.0.1:6033)/mall_user?charset=utf8mb4&parseTime=true&loc=Local
