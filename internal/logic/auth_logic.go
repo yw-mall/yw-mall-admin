@@ -127,8 +127,11 @@ func AdminLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.Logi
 	}, nil
 }
 
-// MerchantLogin reuses the regular user login then attaches shop_id from the
-// shop service before minting an opaque session bound to role=merchant.
+// MerchantLogin reuses the regular user login then looks the caller up in the
+// merchant_staff table (M1 — adds staff role + perms; previously only the
+// shop owner could log in via GetShopByOwnerId). Mints an opaque session bound
+// to role="merchant" with shopId + perms injected so SessionAuthMiddleware
+// can read perms straight out of session.Perms without an extra RPC roundtrip.
 func MerchantLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.LoginReq) (*types.LoginResp, error) {
 	loginResp, err := svcCtx.UserRpc.Login(ctx, &userclient.LoginReq{
 		Username: req.Username,
@@ -137,15 +140,21 @@ func MerchantLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.L
 	if err != nil {
 		return nil, err
 	}
-	shop, err := svcCtx.ShopRpc.GetShopByOwnerId(ctx, &shopservice.GetShopByOwnerIdReq{OwnerUserId: loginResp.Id})
+	sr, err := svcCtx.ShopRpc.GetStaffByUserId(ctx, &shopservice.GetStaffByUserIdReq{
+		UserId: loginResp.Id,
+	})
 	if err != nil {
-		return nil, errors.New("merchant has no active shop; apply for one first")
+		return nil, errors.New("staff lookup failed")
+	}
+	if !sr.Found {
+		return nil, errors.New("user is not a staff of any shop; apply for one or accept an invitation first")
 	}
 	sess, err := svcCtx.UserRpc.CreateSession(ctx, &userclient.CreateSessionReq{
 		Uid:      loginResp.Id,
 		Username: req.Username,
 		Role:     "merchant",
-		ShopId:   shop.Id,
+		ShopId:   sr.Staff.ShopId,
+		Perms:    sr.Perms,
 	})
 	if err != nil {
 		return nil, err
@@ -158,7 +167,9 @@ func MerchantLogin(ctx context.Context, svcCtx *svc.ServiceContext, req *types.L
 		Id:           loginResp.Id,
 		Username:     req.Username,
 		Role:         "merchant",
-		ShopId:       shop.Id,
+		ShopId:       sr.Staff.ShopId,
+		StaffRole:    sr.Staff.Role,
+		Permissions:  sr.Perms,
 	}, nil
 }
 

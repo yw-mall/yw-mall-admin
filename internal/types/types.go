@@ -15,6 +15,7 @@ type LoginResp struct {
 	Username     string   `json:"username"`
 	Role         string   `json:"role"`
 	ShopId       int64    `json:"shopId,omitempty"`
+	StaffRole    string   `json:"staffRole,omitempty"` // M1 merchant 子角色 owner/service/warehouse/finance
 	Permissions  []string `json:"permissions,omitempty"`
 	// S4.3 password expiry: when true the FE forces a redirect to change-password.
 	PasswordExpired bool `json:"passwordExpired,omitempty"`
