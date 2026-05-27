@@ -4,6 +4,7 @@ import (
 	"mall-activity-rpc/activityclient"
 	"mall-admin-api/internal/config"
 	"mall-admin-api/internal/middleware"
+	"mall-common/minioutil"
 	"mall-logistics-rpc/logisticsclient"
 	"mall-order-rpc/orderclient"
 	"mall-payment-rpc/paymentclient"
@@ -15,6 +16,7 @@ import (
 	"mall-user-rpc/userclient"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -44,6 +46,9 @@ type ServiceContext struct {
 	// op-log query endpoint. We bypass mall-user-rpc here because the table is
 	// owned by the gateway, not by the user-rpc data model.
 	OpLogDB sqlx.SqlConn
+
+	// M2: MinIO for merchant 商品图片上传。配置缺时为 nil，上传端点会返业务错。
+	MinIO *minioutil.Client
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -62,6 +67,24 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	merchantMw := middleware.NewSessionAuthMiddleware(userRpc, "merchant")
 	opLog := middleware.NewOpLogMiddleware(opLogDB)
 
+	// M2: MinIO client（可选；endpoint 空时降级，上传端点会业务错）
+	var minioCli *minioutil.Client
+	if c.Minio.Endpoint != "" {
+		cli, err := minioutil.New(minioutil.Config{
+			Endpoint:   c.Minio.Endpoint,
+			AccessKey:  c.Minio.AccessKey,
+			SecretKey:  c.Minio.SecretKey,
+			Bucket:     c.Minio.Bucket,
+			PublicHost: c.Minio.PublicHost,
+			UseSSL:     c.Minio.UseSSL,
+		})
+		if err != nil {
+			logx.Errorf("admin-api MinIO init failed: %v", err)
+		} else {
+			minioCli = cli
+		}
+	}
+
 	return &ServiceContext{
 		Config:       c,
 		UserRpc:      userRpc,
@@ -79,6 +102,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		OpLog:        opLog.Handle,
 		Redis:        rdb,
 		OpLogDB:      opLogDB,
+		MinIO:        minioCli,
 	}
 }
 

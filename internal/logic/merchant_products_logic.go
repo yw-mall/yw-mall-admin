@@ -34,6 +34,20 @@ func MerchantCreateProduct(ctx context.Context, svcCtx *svc.ServiceContext, req 
 	if c == nil || c.ShopId <= 0 {
 		return nil, errors.New("merchant shop unknown")
 	}
+	// M2: map FE SkuInputDTO → proto SkuInput, brand/detail 直接走 proto 字段
+	skus := make([]*productclient.SkuInput, 0, len(req.Skus))
+	for _, s := range req.Skus {
+		skus = append(skus, &productclient.SkuInput{
+			Id:       s.Id,
+			SkuCode:  s.SkuCode,
+			SpecText: s.SpecText,
+			SpecJson: s.SpecJson,
+			Price:    s.Price,
+			Stock:    s.Stock,
+			Image:    s.Image,
+			Status:   s.Status,
+		})
+	}
 	resp, err := svcCtx.ProductRpc.CreateProduct(ctx, &productclient.CreateProductReq{
 		Name:        req.Name,
 		Description: req.Description,
@@ -42,6 +56,9 @@ func MerchantCreateProduct(ctx context.Context, svcCtx *svc.ServiceContext, req 
 		CategoryId:  req.CategoryId,
 		Images:      req.Images,
 		ShopId:      c.ShopId,
+		Brand:       req.Brand,
+		Detail:      req.Detail,
+		Skus:        skus,
 	})
 	if err != nil {
 		return nil, err
@@ -77,6 +94,20 @@ func MerchantGetProduct(ctx context.Context, svcCtx *svc.ServiceContext, id int6
 	if c.ShopId > 0 && resp.ShopId != c.ShopId {
 		return nil, errors.New("product not owned by shop")
 	}
+	skus := make([]types.SkuItemDTO, 0, len(resp.Skus))
+	for _, s := range resp.Skus {
+		skus = append(skus, types.SkuItemDTO{
+			Id:        s.Id,
+			ProductId: s.ProductId,
+			SkuCode:   s.SkuCode,
+			SpecText:  s.SpecText,
+			SpecJson:  s.SpecJson,
+			Price:     s.Price,
+			Stock:     s.Stock,
+			Image:     s.Image,
+			Status:    s.Status,
+		})
+	}
 	return &types.ProductDetail{
 		Id:           resp.Id,
 		Name:         resp.Name,
@@ -93,6 +124,7 @@ func MerchantGetProduct(ctx context.Context, svcCtx *svc.ServiceContext, id int6
 		Brand:        resp.Brand,
 		Weight:       resp.Weight,
 		CreateTime:   resp.CreateTime,
+		Skus:         skus,
 	}, nil
 }
 

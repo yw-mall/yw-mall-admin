@@ -177,6 +177,10 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 				{Method: http.MethodPost, Path: "/staff/invitations", Handler: createMerchantInvitationHandler(svcCtx)},
 				{Method: http.MethodPost, Path: "/staff/invitations/:id/revoke", Handler: revokeMerchantInvitationHandler(svcCtx)},
 
+				// ----- M2: 商品图片上传 + SKU 批量 upsert -----
+				{Method: http.MethodPost, Path: "/upload/image", Handler: uploadProductImageHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/products/:id/skus", Handler: merchantBatchUpsertSkusHandler(svcCtx)},
+
 				// ----- P1 Epic H: wallet -----
 				{Method: http.MethodGet, Path: "/wallet", Handler: getMerchantWalletHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/wallet/bills", Handler: listBillRecordsHandler(svcCtx)},

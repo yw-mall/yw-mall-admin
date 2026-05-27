@@ -220,14 +220,16 @@ type MerchantListProductsReq struct {
 
 type MerchantCreateProductReq struct {
 	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       int64   `json:"price"`
-	Stock       int64   `json:"stock"`
+	Description string  `json:"description,optional"`
+	Price       int64   `json:"price,optional"`
+	Stock       int64   `json:"stock,optional"`
 	CategoryId  int64   `json:"categoryId"`
-	Images      string  `json:"images"`
-	Detail      string  `json:"detail,omitempty"`
-	Brand       string  `json:"brand,omitempty"`
-	Weight      float64 `json:"weight,omitempty"`
+	Images      string  `json:"images,optional"`
+	Detail      string  `json:"detail,optional"`
+	Brand       string  `json:"brand,optional"`
+	Weight      float64 `json:"weight,optional"`
+	// M2: 多 SKU 数组，空时后端建 1 个 default SKU 兼容老路径
+	Skus []SkuInputDTO `json:"skus,optional"`
 }
 
 type MerchantCreateProductResp struct {
@@ -254,21 +256,23 @@ type SetProductStockReq struct {
 }
 
 type ProductDetail struct {
-	Id           int64   `json:"id"`
-	Name         string  `json:"name"`
-	Description  string  `json:"description"`
-	Price        int64   `json:"price"`
-	Stock        int64   `json:"stock"`
-	CategoryId   int64   `json:"categoryId"`
-	Images       string  `json:"images"`
-	Status       int32   `json:"status"`
-	ShopId       int64   `json:"shopId"`
-	ReviewStatus int32   `json:"reviewStatus"`
-	ReviewRemark string  `json:"reviewRemark"`
-	Detail       string  `json:"detail"`
-	Brand        string  `json:"brand"`
-	Weight       float64 `json:"weight"`
-	CreateTime   int64   `json:"createTime"`
+	Id           int64        `json:"id"`
+	Name         string       `json:"name"`
+	Description  string       `json:"description"`
+	Price        int64        `json:"price"`
+	Stock        int64        `json:"stock"`
+	CategoryId   int64        `json:"categoryId"`
+	Images       string       `json:"images"`
+	Status       int32        `json:"status"`
+	ShopId       int64        `json:"shopId"`
+	ReviewStatus int32        `json:"reviewStatus"`
+	ReviewRemark string       `json:"reviewRemark"`
+	Detail       string       `json:"detail"`
+	Brand        string       `json:"brand"`
+	Weight       float64      `json:"weight"`
+	CreateTime   int64        `json:"createTime"`
+	// M2: 多 SKU 列表
+	Skus []SkuItemDTO `json:"skus,omitempty"`
 }
 
 // ===== Orders =====
@@ -1230,4 +1234,41 @@ type AcceptInvitationResp struct {
 	ShopId   int64  `json:"shopId"`
 	Role     string `json:"role"`
 	ShopName string `json:"shopName"`
+}
+
+// ===== M2 商品 SKU + 图片上传 =====
+
+type UploadImageResp struct {
+	Url string `json:"url"`
+	Key string `json:"key"`
+}
+
+type SkuInputDTO struct {
+	Id       int64  `json:"id,optional"`
+	SkuCode  string `json:"skuCode,optional"`
+	SpecText string `json:"specText,optional"`
+	SpecJson string `json:"specJson,optional"`
+	Price    int64  `json:"price"`
+	Stock    int64  `json:"stock"`
+	Image    string `json:"image,optional"`
+	Status   int32  `json:"status,optional"`
+}
+
+type SkuItemDTO struct {
+	Id        int64  `json:"id"`
+	ProductId int64  `json:"productId"`
+	SkuCode   string `json:"skuCode"`
+	SpecText  string `json:"specText"`
+	SpecJson  string `json:"specJson"`
+	Price     int64  `json:"price"`
+	Stock     int64  `json:"stock"`
+	Image     string `json:"image"`
+	Status    int32  `json:"status"`
+}
+
+type BatchUpsertSkusReq struct {
+	Skus []SkuInputDTO `json:"skus"`
+}
+type BatchUpsertSkusResp struct {
+	Items []SkuItemDTO `json:"items"`
 }
