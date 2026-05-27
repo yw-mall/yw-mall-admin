@@ -237,14 +237,14 @@ type MerchantCreateProductResp struct {
 }
 
 type MerchantUpdateProductReq struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       int64   `json:"price"`
-	CategoryId  int64   `json:"categoryId"`
-	Images      string  `json:"images"`
-	Detail      string  `json:"detail,omitempty"`
-	Brand       string  `json:"brand,omitempty"`
-	Weight      float64 `json:"weight,omitempty"`
+	Name        string  `json:"name,optional"`
+	Description string  `json:"description,optional"`
+	Price       int64   `json:"price,optional"`
+	CategoryId  int64   `json:"categoryId,optional"`
+	Images      string  `json:"images,optional"`
+	Detail      string  `json:"detail,optional"`
+	Brand       string  `json:"brand,optional"`
+	Weight      float64 `json:"weight,optional"`
 }
 
 type SetProductStatusReq struct {
