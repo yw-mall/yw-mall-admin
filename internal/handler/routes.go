@@ -128,6 +128,11 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 			{Method: http.MethodPost, Path: "/refresh", Handler: merchantRefreshHandler(svcCtx)},
 			{Method: http.MethodPost, Path: "/apply", Handler: applyShopHandler(svcCtx)},
 			{Method: http.MethodGet, Path: "/apply/:id", Handler: getMyApplicationHandler(svcCtx)},
+
+			// M1: accept-invitation is public — caller has c-user (role=user)
+			// token, not merchant token, so MerchantAuth would 403. The handler
+			// validates the bearer token itself via user-rpc.ValidateSession.
+			{Method: http.MethodPost, Path: "/invitations/accept", Handler: acceptMerchantInvitationHandler(svcCtx)},
 		},
 		rest.WithPrefix("/merchant/v1"),
 	)
@@ -163,6 +168,14 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 
 				// ----- P1 Epic G: activities (merchant browses) -----
 				{Method: http.MethodGet, Path: "/activities", Handler: merchantListActivitiesHandler(svcCtx)},
+
+				// ----- M1: staff RBAC + invitation -----
+				{Method: http.MethodGet, Path: "/staff", Handler: listMerchantStaffHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/staff/:id/role", Handler: updateMerchantStaffRoleHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/staff/:id/disable", Handler: disableMerchantStaffHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/staff/invitations", Handler: listMerchantInvitationsHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/staff/invitations", Handler: createMerchantInvitationHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/staff/invitations/:id/revoke", Handler: revokeMerchantInvitationHandler(svcCtx)},
 
 				// ----- P1 Epic H: wallet -----
 				{Method: http.MethodGet, Path: "/wallet", Handler: getMerchantWalletHandler(svcCtx)},

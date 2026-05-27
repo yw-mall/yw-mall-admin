@@ -1181,3 +1181,53 @@ type OpLogQueryResp struct {
 	Total int64           `json:"total"`
 	Items []OpLogEntryDTO `json:"items"`
 }
+
+// ===== M1 merchant staff & invitation =====
+
+type StaffItemDTO struct {
+	Id       int64  `json:"id"`
+	UserId   int64  `json:"userId"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	Status   int32  `json:"status"`
+	JoinedAt int64  `json:"joinedAt"`
+}
+type ListStaffResp struct {
+	Items []StaffItemDTO `json:"items"`
+}
+
+type UpdateStaffRoleReq struct {
+	NewRole string `json:"newRole"`
+}
+
+type CreateInvitationReq struct {
+	TargetPhone string `json:"targetPhone,optional"`
+	TargetEmail string `json:"targetEmail,optional"`
+	Role        string `json:"role"`
+}
+type CreateInvitationResp struct {
+	InvitationCode string `json:"invitationCode"`
+	ExpiresAt      int64  `json:"expiresAt"`
+}
+
+type InvitationItemDTO struct {
+	Id          int64  `json:"id"`
+	TargetPhone string `json:"targetPhone"`
+	TargetEmail string `json:"targetEmail"`
+	Role        string `json:"role"`
+	Status      int32  `json:"status"`
+	ExpiresAt   int64  `json:"expiresAt"`
+	CreateTime  int64  `json:"createTime"`
+}
+type ListInvitationsResp struct {
+	Items []InvitationItemDTO `json:"items"`
+}
+
+type AcceptInvitationReq struct {
+	InvitationCode string `json:"invitationCode"`
+}
+type AcceptInvitationResp struct {
+	ShopId   int64  `json:"shopId"`
+	Role     string `json:"role"`
+	ShopName string `json:"shopName"`
+}
