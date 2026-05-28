@@ -217,7 +217,10 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 
 				// ----- S2: refund (merchant) -----
 				{Method: http.MethodGet, Path: "/refunds", Handler: listShopRefundsHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/refunds/:id", Handler: merchantGetRefundDetailHandler(svcCtx)},
 				{Method: http.MethodPost, Path: "/refunds/:id/handle", Handler: merchantHandleRefundHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/refunds/:id/inspect", Handler: merchantInspectReturnHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/refunds/:id/ship-exchange", Handler: merchantShipExchangeHandler(svcCtx)},
 			}...,
 		),
 		rest.WithPrefix("/merchant/v1"),

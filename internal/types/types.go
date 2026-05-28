@@ -1272,3 +1272,15 @@ type BatchUpsertSkusReq struct {
 type BatchUpsertSkusResp struct {
 	Items []SkuItemDTO `json:"items"`
 }
+
+// ===== M4 退款 3 类工作流 =====
+
+type InspectReturnReq struct {
+	Passed bool   `json:"passed"`
+	Remark string `json:"remark,optional"`
+}
+
+type ShipExchangeReq struct {
+	TrackingNo string `json:"trackingNo"`
+	Carrier    string `json:"carrier"`
+}
