@@ -17,10 +17,13 @@ func MerchantListOrders(ctx context.Context, svcCtx *svc.ServiceContext, req *ty
 		return nil, errors.New("merchant shop unknown")
 	}
 	resp, err := svcCtx.OrderRpc.ListShopOrders(ctx, &orderclient.ListShopOrdersReq{
-		ShopId:   c.ShopId,
-		Status:   req.Status,
-		Page:     req.Page,
-		PageSize: req.PageSize,
+		ShopId:          c.ShopId,
+		Status:          req.Status,
+		Page:            req.Page,
+		PageSize:        req.PageSize,
+		OrderNoKw:       req.OrderNoKw,
+		ReceiverNameKw:  req.ReceiverNameKw,
+		ReceiverPhoneKw: req.ReceiverPhoneKw,
 	})
 	if err != nil {
 		return nil, err

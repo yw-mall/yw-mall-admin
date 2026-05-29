@@ -277,9 +277,12 @@ type ProductDetail struct {
 
 // ===== Orders =====
 type MerchantListOrdersReq struct {
-	Status   int32 `form:"status,default=-1"`
-	Page     int32 `form:"page,default=1"`
-	PageSize int32 `form:"pageSize,default=20"`
+	Status          int32  `form:"status,default=-1"`
+	Page            int32  `form:"page,default=1"`
+	PageSize        int32  `form:"pageSize,default=20"`
+	OrderNoKw       string `form:"orderNoKw,optional"`
+	ReceiverNameKw  string `form:"receiverNameKw,optional"`
+	ReceiverPhoneKw string `form:"receiverPhoneKw,optional"`
 }
 
 type OrderItem struct {
