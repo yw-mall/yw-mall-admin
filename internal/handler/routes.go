@@ -186,6 +186,10 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 				{Method: http.MethodGet, Path: "/decoration", Handler: getMerchantDecorationHandler(svcCtx)},
 				{Method: http.MethodPut, Path: "/decoration", Handler: updateMerchantDecorationHandler(svcCtx)},
 
+				// ----- M5 收尾: ledger 流水（merchant 强制本店 shopId 防越权）-----
+				{Method: http.MethodGet, Path: "/ledger", Handler: merchantListLedgerHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/ledger/summary", Handler: merchantGetLedgerSummaryHandler(svcCtx)},
+
 				// ----- P1 Epic H: wallet -----
 				{Method: http.MethodGet, Path: "/wallet", Handler: getMerchantWalletHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/wallet/bills", Handler: listBillRecordsHandler(svcCtx)},
