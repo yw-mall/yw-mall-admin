@@ -1284,3 +1284,27 @@ type ShipExchangeReq struct {
 	TrackingNo string `json:"trackingNo"`
 	Carrier    string `json:"carrier"`
 }
+
+// ===== M6 Dashboard + 装修 =====
+
+type MerchantDashboardResp struct {
+	TotalOrders      int32 `json:"totalOrders"`
+	PendingShipments int32 `json:"pendingShipments"`
+	PendingRefunds   int32 `json:"pendingRefunds"`
+	WalletAvailable  int64 `json:"walletAvailable"`
+	WalletFrozen     int64 `json:"walletFrozen"`
+}
+
+type ShopDecorationDTO struct {
+	ShopId       int64  `json:"shopId"`
+	Banners      string `json:"banners"`
+	Announcement string `json:"announcement"`
+	FeaturedPids string `json:"featuredPids"`
+	UpdateTime   int64  `json:"updateTime"`
+}
+
+type UpdateDecorationReq struct {
+	Banners      string `json:"banners,optional"`
+	Announcement string `json:"announcement,optional"`
+	FeaturedPids string `json:"featuredPids,optional"`
+}
