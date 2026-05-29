@@ -37,13 +37,25 @@ func MerchantListOrders(ctx context.Context, svcCtx *svc.ServiceContext, req *ty
 			})
 		}
 		out = append(out, &types.OrderBrief{
-			Id:          o.Id,
-			OrderNo:     o.OrderNo,
-			UserId:      o.UserId,
-			TotalAmount: o.TotalAmount,
-			Status:      o.Status,
-			CreateTime:  o.CreateTime,
-			Items:       items,
+			Id:               o.Id,
+			OrderNo:          o.OrderNo,
+			UserId:           o.UserId,
+			TotalAmount:      o.TotalAmount,
+			Status:           o.Status,
+			CreateTime:       o.CreateTime,
+			Items:            items,
+			AddressId:        o.AddressId,
+			ReceiverName:     o.ReceiverName,
+			ReceiverPhone:    o.ReceiverPhone,
+			ReceiverProvince: o.ReceiverProvince,
+			ReceiverCity:     o.ReceiverCity,
+			ReceiverDistrict: o.ReceiverDistrict,
+			ReceiverDetail:   o.ReceiverDetail,
+			PayTime:          o.PayTime,
+			ShipTime:         o.ShipTime,
+			CompleteTime:     o.CompleteTime,
+			CancelTime:       o.CancelTime,
+			CancelReason:     o.CancelReason,
 		})
 	}
 	return &types.MerchantListOrdersResp{Total: resp.Total, Orders: out}, nil
@@ -68,13 +80,25 @@ func MerchantGetOrder(ctx context.Context, svcCtx *svc.ServiceContext, id int64)
 		})
 	}
 	return &types.OrderBrief{
-		Id:          o.Id,
-		OrderNo:     o.OrderNo,
-		UserId:      o.UserId,
-		TotalAmount: o.TotalAmount,
-		Status:      o.Status,
-		CreateTime:  o.CreateTime,
-		Items:       items,
+		Id:               o.Id,
+		OrderNo:          o.OrderNo,
+		UserId:           o.UserId,
+		TotalAmount:      o.TotalAmount,
+		Status:           o.Status,
+		CreateTime:       o.CreateTime,
+		Items:            items,
+		AddressId:        o.AddressId,
+		ReceiverName:     o.ReceiverName,
+		ReceiverPhone:    o.ReceiverPhone,
+		ReceiverProvince: o.ReceiverProvince,
+		ReceiverCity:     o.ReceiverCity,
+		ReceiverDistrict: o.ReceiverDistrict,
+		ReceiverDetail:   o.ReceiverDetail,
+		PayTime:          o.PayTime,
+		ShipTime:         o.ShipTime,
+		CompleteTime:     o.CompleteTime,
+		CancelTime:       o.CancelTime,
+		CancelReason:     o.CancelReason,
 	}, nil
 }
 

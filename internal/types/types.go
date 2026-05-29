@@ -297,6 +297,20 @@ type OrderBrief struct {
 	Status      int32        `json:"status"`
 	CreateTime  int64        `json:"createTime"`
 	Items       []*OrderItem `json:"items"`
+	// 收件人 & 物流地址 —— FE 订单列表/详情直接展示
+	AddressId        int64  `json:"addressId"`
+	ReceiverName     string `json:"receiverName"`
+	ReceiverPhone    string `json:"receiverPhone"`
+	ReceiverProvince string `json:"receiverProvince"`
+	ReceiverCity     string `json:"receiverCity"`
+	ReceiverDistrict string `json:"receiverDistrict"`
+	ReceiverDetail   string `json:"receiverDetail"`
+	// 状态时间轴 —— detail.vue 用付款/发货/完成/取消时间
+	PayTime      int64  `json:"payTime"`
+	ShipTime     int64  `json:"shipTime"`
+	CompleteTime int64  `json:"completeTime"`
+	CancelTime   int64  `json:"cancelTime"`
+	CancelReason string `json:"cancelReason"`
 }
 
 type MerchantListOrdersResp struct {
