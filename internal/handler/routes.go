@@ -198,6 +198,12 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 				{Method: http.MethodPost, Path: "/promotions/:id/online", Handler: changeMerchantPromotionStatusHandler(svcCtx, 1)},
 				{Method: http.MethodPost, Path: "/promotions/:id/offline", Handler: changeMerchantPromotionStatusHandler(svcCtx, 4)},
 
+				// ----- Phase 1 优惠券模板管理 (S1.3.1/2/5) -----
+				{Method: http.MethodPost, Path: "/coupon-templates", Handler: createMerchantCouponTemplateHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/coupon-templates", Handler: listMerchantCouponTemplatesHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/coupon-templates/:id/online", Handler: changeMerchantCouponTemplateStatusHandler(svcCtx, 1)},
+				{Method: http.MethodPost, Path: "/coupon-templates/:id/offline", Handler: changeMerchantCouponTemplateStatusHandler(svcCtx, 0)},
+
 				// ----- P1 Epic H: wallet -----
 				{Method: http.MethodGet, Path: "/wallet", Handler: getMerchantWalletHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/wallet/bills", Handler: listBillRecordsHandler(svcCtx)},

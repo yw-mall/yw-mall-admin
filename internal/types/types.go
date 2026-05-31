@@ -1399,3 +1399,62 @@ type ListPromotionsResp struct {
 	Total      int64            `json:"total"`
 	Promotions []*PromotionInfo `json:"promotions"`
 }
+
+// ===== Phase 1 优惠券 (商家管理) =====
+
+type CreateCouponTemplateReq struct {
+	Name         string `json:"name"`
+	Type         string `json:"type"` // full_reduce/discount/cash/freeship
+	Value        int64  `json:"value"`
+	MinAmount    int64  `json:"minAmount,optional"`
+	MaxDiscount  int64  `json:"maxDiscount,optional"`
+	CategoryId   int64  `json:"categoryId,optional"`
+	TotalCount   int32  `json:"totalCount"`
+	PerUserLimit int32  `json:"perUserLimit,optional"`
+	ValidType    int32  `json:"validType,optional"` // 0固定/1领后N天
+	ValidDays    int32  `json:"validDays,optional"`
+	ValidStart   int64  `json:"validStart,optional"`
+	ValidEnd     int64  `json:"validEnd,optional"`
+	ReceiveStart int64  `json:"receiveStart"`
+	ReceiveEnd   int64  `json:"receiveEnd"`
+}
+
+type CreateCouponTemplateResp struct {
+	Id int64 `json:"id"`
+}
+
+type CouponTemplateInfo struct {
+	Id            int64  `json:"id"`
+	ActivityId    int64  `json:"activityId"`
+	ShopId        int64  `json:"shopId"`
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	Value         int64  `json:"value"`
+	MinAmount     int64  `json:"minAmount"`
+	MaxDiscount   int64  `json:"maxDiscount"`
+	CategoryId    int64  `json:"categoryId"`
+	TotalCount    int32  `json:"totalCount"`
+	ReceivedCount int32  `json:"receivedCount"`
+	UsedCount     int32  `json:"usedCount"`
+	PerUserLimit  int32  `json:"perUserLimit"`
+	ValidType     int32  `json:"validType"`
+	ValidDays     int32  `json:"validDays"`
+	ValidStart    int64  `json:"validStart"`
+	ValidEnd      int64  `json:"validEnd"`
+	ReceiveStart  int64  `json:"receiveStart"`
+	ReceiveEnd    int64  `json:"receiveEnd"`
+	Status        int32  `json:"status"`
+	CreateTime    int64  `json:"createTime"`
+	UpdateTime    int64  `json:"updateTime"`
+}
+
+type ListCouponTemplatesReq struct {
+	Status   int32 `form:"status,default=-1"`
+	Page     int32 `form:"page,default=1"`
+	PageSize int32 `form:"pageSize,default=20"`
+}
+
+type ListCouponTemplatesResp struct {
+	Total     int64                 `json:"total"`
+	Templates []*CouponTemplateInfo `json:"templates"`
+}
