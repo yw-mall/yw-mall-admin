@@ -190,6 +190,14 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 				{Method: http.MethodGet, Path: "/ledger", Handler: merchantListLedgerHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/ledger/summary", Handler: merchantGetLedgerSummaryHandler(svcCtx)},
 
+				// ----- Phase 1 优惠活动管理 (S1.2) -----
+				{Method: http.MethodPost, Path: "/promotions", Handler: createMerchantPromotionHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/promotions", Handler: listMerchantPromotionsHandler(svcCtx)},
+				{Method: http.MethodGet, Path: "/promotions/:id", Handler: getMerchantPromotionHandler(svcCtx)},
+				{Method: http.MethodPut, Path: "/promotions/:id", Handler: updateMerchantPromotionHandler(svcCtx)},
+				{Method: http.MethodPost, Path: "/promotions/:id/online", Handler: changeMerchantPromotionStatusHandler(svcCtx, 1)},
+				{Method: http.MethodPost, Path: "/promotions/:id/offline", Handler: changeMerchantPromotionStatusHandler(svcCtx, 4)},
+
 				// ----- P1 Epic H: wallet -----
 				{Method: http.MethodGet, Path: "/wallet", Handler: getMerchantWalletHandler(svcCtx)},
 				{Method: http.MethodGet, Path: "/wallet/bills", Handler: listBillRecordsHandler(svcCtx)},

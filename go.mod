@@ -12,6 +12,7 @@ require (
 	mall-order-rpc v0.0.0
 	mall-payment-rpc v0.0.0
 	mall-product-rpc v0.0.0
+	mall-promotion-rpc v0.0.0
 	mall-review-rpc v0.0.0
 	mall-risk-rpc v0.0.0
 	mall-rule-rpc v0.0.0
@@ -132,6 +133,7 @@ replace (
 	mall-order-rpc => ../yw-mall/mall-order-rpc
 	mall-payment-rpc => ../yw-mall/mall-payment-rpc
 	mall-product-rpc => ../yw-mall/mall-product-rpc
+	mall-promotion-rpc => ../yw-mall/mall-promotion-rpc
 	mall-review-rpc => ../yw-mall/mall-review-rpc
 	mall-risk-rpc => ../yw-mall/mall-risk-rpc
 	mall-rule-rpc => ../yw-mall/mall-rule-rpc

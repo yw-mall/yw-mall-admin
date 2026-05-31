@@ -9,6 +9,7 @@ import (
 	"mall-order-rpc/orderclient"
 	"mall-payment-rpc/paymentclient"
 	"mall-product-rpc/productclient"
+	"mall-promotion-rpc/promotionclient"
 	"mall-review-rpc/reviewclient"
 	"mall-risk-rpc/riskclient"
 	"mall-rule-rpc/ruleclient"
@@ -34,6 +35,7 @@ type ServiceContext struct {
 	PaymentRpc   paymentclient.Payment
 	ActivityRpc  activityclient.Activity
 	LogisticsRpc logisticsclient.Logistics
+	PromotionRpc promotionclient.Promotion
 
 	AdminAuth    rest.Middleware
 	MerchantAuth rest.Middleware
@@ -97,6 +99,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		PaymentRpc:   paymentclient.NewPayment(zrpc.MustNewClient(c.PaymentRpc)),
 		ActivityRpc:  activityclient.NewActivity(zrpc.MustNewClient(c.ActivityRpc)),
 		LogisticsRpc: logisticsclient.NewLogistics(zrpc.MustNewClient(c.LogisticsRpc)),
+		PromotionRpc: promotionclient.NewPromotion(zrpc.MustNewClient(c.PromotionRpc)),
 		AdminAuth:    adminMw.Handle,
 		MerchantAuth: merchantMw.Handle,
 		OpLog:        opLog.Handle,

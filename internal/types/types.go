@@ -1325,3 +1325,77 @@ type UpdateDecorationReq struct {
 	Announcement string `json:"announcement,optional"`
 	FeaturedPids string `json:"featuredPids,optional"`
 }
+
+// ===== Phase 1 优惠活动 =====
+
+type PromotionTargetDTO struct {
+	TargetType string `json:"targetType"` // sku/category/shop/all
+	TargetId   int64  `json:"targetId"`
+}
+
+type PromotionActionDTO struct {
+	ActionType     string `json:"actionType"`     // reduce/discount/cash/fixprice/freeship/gift
+	ThresholdType  string `json:"thresholdType,optional"` // none/amount/quantity
+	ThresholdValue int64  `json:"thresholdValue,optional"`
+	BenefitValue   int64  `json:"benefitValue"`
+	MaxDiscount    int64  `json:"maxDiscount,optional"`
+	GiftSkuId      int64  `json:"giftSkuId,optional"`
+	StepOrder      int32  `json:"stepOrder,optional"`
+}
+
+type CreatePromotionReq struct {
+	Type        string               `json:"type"` // fullreduce/discount/fixprice/coupon
+	Name        string               `json:"name"`
+	StartTime   int64                `json:"startTime"`
+	EndTime     int64                `json:"endTime"`
+	Priority    int32                `json:"priority,optional"`
+	Stackable   bool                 `json:"stackable,optional"`
+	Description string               `json:"description,optional"`
+	Targets     []PromotionTargetDTO `json:"targets"`
+	Actions     []PromotionActionDTO `json:"actions"`
+}
+
+type CreatePromotionResp struct {
+	Id int64 `json:"id"`
+}
+
+type UpdatePromotionReq struct {
+	Name        string               `json:"name"`
+	StartTime   int64                `json:"startTime"`
+	EndTime     int64                `json:"endTime"`
+	Priority    int32                `json:"priority,optional"`
+	Stackable   bool                 `json:"stackable,optional"`
+	Description string               `json:"description,optional"`
+	Targets     []PromotionTargetDTO `json:"targets"`
+	Actions     []PromotionActionDTO `json:"actions"`
+}
+
+type PromotionInfo struct {
+	Id           int64                `json:"id"`
+	Type         string               `json:"type"`
+	Name         string               `json:"name"`
+	ShopId       int64                `json:"shopId"`
+	Status       int32                `json:"status"`
+	StartTime    int64                `json:"startTime"`
+	EndTime      int64                `json:"endTime"`
+	Priority     int32                `json:"priority"`
+	Stackable    bool                 `json:"stackable"`
+	Description  string               `json:"description"`
+	CreateUserId int64                `json:"createUserId"`
+	CreateTime   int64                `json:"createTime"`
+	UpdateTime   int64                `json:"updateTime"`
+	Targets      []PromotionTargetDTO `json:"targets,optional"`
+	Actions      []PromotionActionDTO `json:"actions,optional"`
+}
+
+type ListPromotionsReq struct {
+	Type     string `form:"type,optional"`
+	Status   int32  `form:"status,default=-1"`
+	Page     int32  `form:"page,default=1"`
+	PageSize int32  `form:"pageSize,default=20"`
+}
+
+type ListPromotionsResp struct {
+	Total      int64            `json:"total"`
+	Promotions []*PromotionInfo `json:"promotions"`
+}

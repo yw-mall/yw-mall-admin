@@ -21,6 +21,7 @@ type Config struct {
 	PaymentRpc   zrpc.RpcClientConf
 	ActivityRpc  zrpc.RpcClientConf
 	LogisticsRpc zrpc.RpcClientConf
+	PromotionRpc zrpc.RpcClientConf
 
 	// S4 security: Redis for failed-login lock + MFA challenge tokens.
 	Redis struct {
