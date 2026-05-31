@@ -59,6 +59,10 @@ func MerchantListOrders(ctx context.Context, svcCtx *svc.ServiceContext, req *ty
 			CompleteTime:     o.CompleteTime,
 			CancelTime:       o.CancelTime,
 			CancelReason:     o.CancelReason,
+			PromotionDiscount: o.PromotionDiscount,
+			CouponDiscount:    o.CouponDiscount,
+			PaidAmount:        o.PaidAmount,
+			DiscountDetail:    o.DiscountDetail,
 		})
 	}
 	return &types.MerchantListOrdersResp{Total: resp.Total, Orders: out}, nil
@@ -102,6 +106,10 @@ func MerchantGetOrder(ctx context.Context, svcCtx *svc.ServiceContext, id int64)
 		CompleteTime:     o.CompleteTime,
 		CancelTime:       o.CancelTime,
 		CancelReason:     o.CancelReason,
+		PromotionDiscount: o.PromotionDiscount,
+		CouponDiscount:    o.CouponDiscount,
+		PaidAmount:        o.PaidAmount,
+		DiscountDetail:    o.DiscountDetail,
 	}, nil
 }
 

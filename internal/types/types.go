@@ -314,6 +314,11 @@ type OrderBrief struct {
 	CompleteTime int64  `json:"completeTime"`
 	CancelTime   int64  `json:"cancelTime"`
 	CancelReason string `json:"cancelReason"`
+	// Phase 1 优惠活动明细
+	PromotionDiscount int64  `json:"promotionDiscount"`
+	CouponDiscount    int64  `json:"couponDiscount"`
+	PaidAmount        int64  `json:"paidAmount"`
+	DiscountDetail    string `json:"discountDetail,omitempty"`
 }
 
 type MerchantListOrdersResp struct {
