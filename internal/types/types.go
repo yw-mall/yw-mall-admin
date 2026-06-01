@@ -1348,6 +1348,13 @@ type PromotionActionDTO struct {
 	StepOrder      int32  `json:"stepOrder,optional"`
 }
 
+// S2.4 限购规则
+type PromotionRuleDTO struct {
+	PerUserQuota  int32 `json:"perUserQuota,optional"`  // 每人累计限购, 0=不限
+	PerOrderQuota int32 `json:"perOrderQuota,optional"` // 单订单限购件数, 0=不限
+	PerDayQuota   int32 `json:"perDayQuota,optional"`   // 每人每日限购, 0=不限
+}
+
 type CreatePromotionReq struct {
 	Type        string               `json:"type"` // fullreduce/discount/fixprice/coupon
 	Name        string               `json:"name"`
@@ -1358,6 +1365,7 @@ type CreatePromotionReq struct {
 	Description string               `json:"description,optional"`
 	Targets     []PromotionTargetDTO `json:"targets"`
 	Actions     []PromotionActionDTO `json:"actions"`
+	Rule        *PromotionRuleDTO    `json:"rule,optional"` // S2.4 限购
 }
 
 type CreatePromotionResp struct {
@@ -1373,6 +1381,7 @@ type UpdatePromotionReq struct {
 	Description string               `json:"description,optional"`
 	Targets     []PromotionTargetDTO `json:"targets"`
 	Actions     []PromotionActionDTO `json:"actions"`
+	Rule        *PromotionRuleDTO    `json:"rule,optional"`
 }
 
 type PromotionInfo struct {
@@ -1391,6 +1400,7 @@ type PromotionInfo struct {
 	UpdateTime   int64                `json:"updateTime"`
 	Targets      []PromotionTargetDTO `json:"targets,optional"`
 	Actions      []PromotionActionDTO `json:"actions,optional"`
+	Rule         *PromotionRuleDTO    `json:"rule,optional"`
 }
 
 type ListPromotionsReq struct {

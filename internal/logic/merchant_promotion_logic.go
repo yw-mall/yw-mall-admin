@@ -37,6 +37,14 @@ func MerchantCreatePromotion(ctx context.Context, svcCtx *svc.ServiceContext, re
 			StepOrder:      a.StepOrder,
 		})
 	}
+	var rule *promotionclient.ActivityRule
+	if req.Rule != nil {
+		rule = &promotionclient.ActivityRule{
+			PerUserQuota:  req.Rule.PerUserQuota,
+			PerOrderQuota: req.Rule.PerOrderQuota,
+			PerDayQuota:   req.Rule.PerDayQuota,
+		}
+	}
 	resp, err := svcCtx.PromotionRpc.CreateActivity(ctx, &promotionclient.CreateActivityReq{
 		Type:          req.Type,
 		Name:          req.Name,
@@ -49,6 +57,7 @@ func MerchantCreatePromotion(ctx context.Context, svcCtx *svc.ServiceContext, re
 		CreateUserId:  c.Uid,
 		Targets:       targets,
 		Actions:       actions,
+		Rule:          rule,
 	})
 	if err != nil {
 		return nil, err
@@ -82,10 +91,18 @@ func MerchantUpdatePromotion(ctx context.Context, svcCtx *svc.ServiceContext, id
 			MaxDiscount: a.MaxDiscount, GiftSkuId: a.GiftSkuId, StepOrder: a.StepOrder,
 		})
 	}
+	var rule *promotionclient.ActivityRule
+	if req.Rule != nil {
+		rule = &promotionclient.ActivityRule{
+			PerUserQuota:  req.Rule.PerUserQuota,
+			PerOrderQuota: req.Rule.PerOrderQuota,
+			PerDayQuota:   req.Rule.PerDayQuota,
+		}
+	}
 	if _, err := svcCtx.PromotionRpc.UpdateActivity(ctx, &promotionclient.UpdateActivityReq{
 		Id: id, Name: req.Name, StartTime: req.StartTime, EndTime: req.EndTime,
 		Priority: req.Priority, Stackable: req.Stackable, Description: req.Description,
-		Targets: targets, Actions: actions,
+		Targets: targets, Actions: actions, Rule: rule,
 	}); err != nil {
 		return nil, err
 	}
@@ -162,11 +179,19 @@ func promotionToInfo(a *promotionclient.Activity) *types.PromotionInfo {
 			MaxDiscount: ac.MaxDiscount, GiftSkuId: ac.GiftSkuId, StepOrder: ac.StepOrder,
 		})
 	}
+	var rule *types.PromotionRuleDTO
+	if a.Rule != nil {
+		rule = &types.PromotionRuleDTO{
+			PerUserQuota:  a.Rule.PerUserQuota,
+			PerOrderQuota: a.Rule.PerOrderQuota,
+			PerDayQuota:   a.Rule.PerDayQuota,
+		}
+	}
 	return &types.PromotionInfo{
 		Id: a.Id, Type: a.Type, Name: a.Name, ShopId: a.ShopId, Status: a.Status,
 		StartTime: a.StartTime, EndTime: a.EndTime, Priority: a.Priority, Stackable: a.Stackable,
 		Description: a.Description, CreateUserId: a.CreateUserId,
 		CreateTime: a.CreateTime, UpdateTime: a.UpdateTime,
-		Targets: targets, Actions: actions,
+		Targets: targets, Actions: actions, Rule: rule,
 	}
 }
