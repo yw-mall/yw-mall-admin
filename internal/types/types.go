@@ -1432,6 +1432,9 @@ type CreateCouponTemplateReq struct {
 	ValidEnd     int64  `json:"validEnd,optional"`
 	ReceiveStart int64  `json:"receiveStart"`
 	ReceiveEnd   int64  `json:"receiveEnd"`
+	// S2.3 新人券
+	IsNewUserOnly     bool  `json:"isNewUserOnly,optional"`
+	NewUserWithinDays int32 `json:"newUserWithinDays,optional"`
 }
 
 type CreateCouponTemplateResp struct {
@@ -1461,6 +1464,9 @@ type CouponTemplateInfo struct {
 	Status        int32  `json:"status"`
 	CreateTime    int64  `json:"createTime"`
 	UpdateTime    int64  `json:"updateTime"`
+	// S2.3 新人券
+	IsNewUserOnly     bool  `json:"isNewUserOnly,optional"`
+	NewUserWithinDays int32 `json:"newUserWithinDays,optional"`
 }
 
 type ListCouponTemplatesReq struct {

@@ -18,21 +18,23 @@ func MerchantCreateCouponTemplate(ctx context.Context, svcCtx *svc.ServiceContex
 		return nil, errors.New("not in a shop")
 	}
 	resp, err := svcCtx.PromotionRpc.CreateCouponTemplate(ctx, &promotionclient.CreateCouponTemplateReq{
-		ShopId:        c.ShopId,
-		Name:          req.Name,
-		Type:          req.Type,
-		Value:         req.Value,
-		MinAmount:     req.MinAmount,
-		MaxDiscount:   req.MaxDiscount,
-		CategoryId:    req.CategoryId,
-		TotalCount:    req.TotalCount,
-		PerUserLimit:  req.PerUserLimit,
-		ValidType:     req.ValidType,
-		ValidDays:     req.ValidDays,
-		ValidStart:    req.ValidStart,
-		ValidEnd:      req.ValidEnd,
-		ReceiveStart:  req.ReceiveStart,
-		ReceiveEnd:    req.ReceiveEnd,
+		ShopId:            c.ShopId,
+		Name:              req.Name,
+		Type:              req.Type,
+		Value:             req.Value,
+		MinAmount:         req.MinAmount,
+		MaxDiscount:       req.MaxDiscount,
+		CategoryId:        req.CategoryId,
+		TotalCount:        req.TotalCount,
+		PerUserLimit:      req.PerUserLimit,
+		ValidType:         req.ValidType,
+		ValidDays:         req.ValidDays,
+		ValidStart:        req.ValidStart,
+		ValidEnd:          req.ValidEnd,
+		ReceiveStart:      req.ReceiveStart,
+		ReceiveEnd:        req.ReceiveEnd,
+		IsNewUserOnly:     req.IsNewUserOnly,
+		NewUserWithinDays: req.NewUserWithinDays,
 	})
 	if err != nil {
 		return nil, err
@@ -81,5 +83,6 @@ func couponTemplateToInfo(t *promotionclient.CouponTemplate) *types.CouponTempla
 		ValidStart: t.ValidStart, ValidEnd: t.ValidEnd,
 		ReceiveStart: t.ReceiveStart, ReceiveEnd: t.ReceiveEnd,
 		Status: t.Status, CreateTime: t.CreateTime, UpdateTime: t.UpdateTime,
+		IsNewUserOnly: t.IsNewUserOnly, NewUserWithinDays: t.NewUserWithinDays,
 	}
 }
